@@ -1,6 +1,7 @@
 {
     "reader": {
-        "type":"http",
+        "type":"tcp",
+        "dsn": "127.0.0.1:9098",
         "conn": {
             "host": "localhost",
             "user": "root",
