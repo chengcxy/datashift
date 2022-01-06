@@ -1,7 +1,7 @@
 package clients
 
 import (
-	"github.com/chengcxy/datashift/scheduler"
+	"encoding/json"
 	"github.com/chengcxy/gotools/configor"
 	"io/ioutil"
 	"log"
@@ -11,7 +11,7 @@ import (
 type HttpClient struct {
 }
 
-func (h *HttpClient) Read(query interface{}, writer scheduler.Client) (*scheduler.WriteResult, error) {
+func (h *HttpClient) Read(query interface{}, writer Client) (*WriteResult, error) {
 	q := query.(map[string]string)
 	method := q["method"]
 	url := q["url"]
@@ -19,36 +19,36 @@ func (h *HttpClient) Read(query interface{}, writer scheduler.Client) (*schedule
 	resp, _ := http.DefaultClient.Do(req)
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
-	data := make(map[string]string)
-	data["result"] = string(bodyText)
-	items := make([]map[string]string, 1)
+	data := make(map[string]interface{})
+	json.Unmarshal(bodyText, &data)
+	items := make([]map[string]interface{}, 1)
 	items[0] = data
-	rr := &scheduler.ReadResult{
+	rr := &ReadResult{
 		Data:  items,
 		Error: err,
 	}
 	return writer.Write(rr)
 }
 
-func (h *HttpClient) Write(rr *scheduler.ReadResult) (wr *scheduler.WriteResult, err error) {
+func (h *HttpClient) Write(rr *ReadResult) (wr *WriteResult, err error) {
 	if rr.Error != nil {
 		err = rr.Error
-		wr = &scheduler.WriteResult{
+		wr = &WriteResult{
 			Status: 0,
 			Error:  rr.Error,
 		}
 		return
 	}
 	data := rr.Data
-	log.Println("mongo write data", data)
-	wr = &scheduler.WriteResult{
+	log.Println("http write data", data)
+	wr = &WriteResult{
 		Status: 1,
 		Error:  nil,
 	}
 	return
 }
 
-func (h *HttpClient) Connect(config *configor.Config) scheduler.Client {
+func (h *HttpClient) Connect(config *configor.Config) Client {
 	return h
 }
 
@@ -56,5 +56,5 @@ func (h *HttpClient) Close() {
 
 }
 func init() {
-	scheduler.Register("http", &HttpClient{})
+	Register("http", &HttpClient{})
 }

@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"github.com/chengcxy/datashift/clients"
 	"github.com/chengcxy/gotools/configor"
 	"log"
 	"strings"
@@ -10,38 +11,13 @@ type Scheduler struct {
 	Config *configor.Config
 }
 
-type Client interface {
-	Connect(config *configor.Config) Client
-	Read(query interface{}, writer Client) (*WriteResult, error)
-	Write(rr *ReadResult) (*WriteResult, error)
-	Close()
-}
-
-var Clients = make(map[string]Client)
-
-func Register(clinetType string, client Client) {
-	if _, exists := Clients[clinetType]; exists {
-		log.Fatalln(clinetType, "client already registered")
-	}
-
-	log.Println("Register", clinetType, "client")
-	Clients[clinetType] = client
-}
-
-func GetClient(clinetType string) (client Client) {
-	if client, exists := Clients[clinetType]; exists {
-		return client
-	}
-	return nil
-}
-
 func (s *Scheduler) Run() {
 	from, _ := s.Config.Get("reader.type")
-	reader := GetClient(from.(string))
+	reader := clients.GetClient(from.(string))
 	reader = reader.Connect(s.Config)
 	log.Printf("reader %v", reader)
 	to, _ := s.Config.Get("writer.type")
-	writer := GetClient(to.(string))
+	writer := clients.GetClient(to.(string))
 	writer = writer.Connect(s.Config)
 	defer func() {
 		reader.Close()
@@ -50,7 +26,7 @@ func (s *Scheduler) Run() {
 	query := make(map[string]string)
 	query["sql"] = "select id,entity_id from z_pe.base_entity_basic_info limit 1000"
 	query["method"] = "GET"
-	query["url"] = "http://www.baidu.com"
+	query["url"] = "http://127.0.0.1:5000/v1/api/"
 	wr, err := reader.Read(query, writer)
 	if err != nil {
 		log.Printf("error %v", err)

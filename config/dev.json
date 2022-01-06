@@ -1,6 +1,6 @@
 {
     "reader": {
-        "type":"mysql",
+        "type":"http",
         "conn": {
             "host": "localhost",
             "user": "root",
@@ -13,7 +13,7 @@
         }
     },
     "writer": {
-        "type":"mysql",
+        "type":"http",
         "conn": {
             "host": "localhost",
             "user": "root",

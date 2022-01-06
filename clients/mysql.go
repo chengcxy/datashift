@@ -2,7 +2,6 @@ package clients
 
 import (
 	"fmt"
-	"github.com/chengcxy/datashift/scheduler"
 	"github.com/chengcxy/gotools/backends"
 	"github.com/chengcxy/gotools/configor"
 	"log"
@@ -13,22 +12,22 @@ type MysqlClient struct {
 	db *backends.MysqlClient
 }
 
-func (m *MysqlClient) Read(query interface{}, writer scheduler.Client) (*scheduler.WriteResult, error) {
+func (m *MysqlClient) Read(query interface{}, writer Client) (*WriteResult, error) {
 	q := query.(map[string]string)
 	sql := q["sql"]
 	log.Printf("sql is %s", sql)
 	data, _, err := m.db.Query(sql)
-	rr := &scheduler.ReadResult{
+	rr := &ReadResult{
 		Data:  data,
 		Error: err,
 	}
 	return writer.Write(rr)
 }
 
-func (m *MysqlClient) Write(rr *scheduler.ReadResult) (wr *scheduler.WriteResult, err error) {
+func (m *MysqlClient) Write(rr *ReadResult) (wr *WriteResult, err error) {
 	if rr.Error != nil {
 		err = rr.Error
-		wr = &scheduler.WriteResult{
+		wr = &WriteResult{
 			Status: 0,
 			Error:  rr.Error,
 		}
@@ -50,14 +49,14 @@ func (m *MysqlClient) Write(rr *scheduler.ReadResult) (wr *scheduler.WriteResult
 	qsStr := strings.Join(qs, ",")
 	InsertSql := fmt.Sprintf(baseInsertSql, qsStr)
 	m.db.Execute(InsertSql, values...)
-	wr = &scheduler.WriteResult{
+	wr = &WriteResult{
 		Status: 1,
 		Error:  nil,
 	}
 	return
 }
 
-func (m *MysqlClient) Connect(config *configor.Config) scheduler.Client {
+func (m *MysqlClient) Connect(config *configor.Config) Client {
 	db, _ := backends.NewMysqlClient(config, "reader.conn")
 	m.db = db
 	return m
@@ -66,5 +65,5 @@ func (m *MysqlClient) Close() {
 	m.db.Close()
 }
 func init() {
-	scheduler.Register("mysql", &MysqlClient{})
+	Register("mysql", &MysqlClient{})
 }
