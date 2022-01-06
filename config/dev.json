@@ -1,0 +1,37 @@
+{
+    "reader": {
+        "type":"mysql",
+        "conn": {
+            "host": "localhost",
+            "user": "root",
+            "password": "123456",
+            "db": "blog",
+            "port": 3306,
+            "charset": "utf8",
+            "MaxOpenConns":20,
+            "MaxIdleConns":30
+        }
+    },
+    "writer": {
+        "type":"mysql",
+        "conn": {
+            "host": "localhost",
+            "user": "root",
+            "password": "123456",
+            "db": "blog",
+            "port": 3306,
+            "charset": "utf8",
+            "MaxOpenConns":20,
+            "MaxIdleConns":30
+        }
+    },
+    "roboter": {
+        "token": "TEST_DINGDING_TOKEN",
+        "atMobiles": [
+            "18811788263"
+        ],
+        "isAtAll": false,
+        "roboter_type": "dingding",
+        "hook_keyword": "任务报警"
+    }
+}
